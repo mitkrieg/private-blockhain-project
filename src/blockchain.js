@@ -77,7 +77,8 @@ class Blockchain {
                 }
                 newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
                 self.chain.push(newBlock);
-                resolve(newBlock)
+                await self.validateChain();
+                resolve(newBlock);
             }
             catch (error) {
                 reject(error)
@@ -235,11 +236,21 @@ class Blockchain {
         return new Promise(async (resolve, reject) => {
             try {
                 for (let i = 0; i < self.chain.length; i++) {
+                    console.log(i)
+                    console.log(self.chain[i].hash)
+                    console.log(self.chain[i].height)
+                    console.log(self.chain[i].previousBlockHash)
+                    console.log('XXXXXXXXXXXXXXXXXXX')
                     if (!self.chain[i].validate()) {
                         errorLog.push({ error: `Block ${i} not valid` })
-                    } else if (self.chain[i].previous_hash !== self.chain[i].hash) {
-                        errorLog.push({ error: `Block ${i} previous hash does not match Block ${i - 1}` })
                     }
+
+                    if (i > 0) {
+                        if (self.chain[i].previousBlockHash !== self.chain[i - 1].hash) {
+                            errorLog.push({ error: `Block ${i} previous hash does not match Block ${i - 1}` })
+                        }
+                    }
+
                 }
 
                 resolve(errorLog)

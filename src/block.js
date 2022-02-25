@@ -38,22 +38,27 @@ class Block {
     validate() {
         let self = this;
         return new Promise((resolve, reject) => {
-            // Save in auxiliary variable the current block hash
-            let given_hash = self.hash
-            self.hash = null
-            // Recalculate the hash of the Block
-            // Comparing if the hashes changed
-            let calculated_hash = SHA256(JSON.stringify(self).toString())
-            self.hash = given_hash
+            try {
+                // Save in auxiliary variable the current block hash
+                let given_hash = self.hash
+                self.hash = null
+                // Recalculate the hash of the Block
+                // Comparing if the hashes changed
+                let calculated_hash = SHA256(JSON.stringify(self)).toString()
+                self.hash = calculated_hash
 
-            // Returning the Block is not valid
-            if (given_hash === calculated_hash) {
-                resolve(true)
+                // Returning the Block is not valid
+                if (given_hash === calculated_hash) {
+                    resolve(true)
+                }
+                // Returning the Block is valid
+                else {
+                    reject(false)
+                }
+            } catch (error) {
+                reject(error)
             }
-            // Returning the Block is valid
-            else {
-                reject(Error(false))
-            }
+
 
         });
     }
@@ -75,11 +80,16 @@ class Block {
         let self = this
 
         return new Promise((resolve, reject) => {
-            let decoded_body = JSON.parse(hex2ascii(self.body));
-            // Resolve with the data if the object isn't the Genesis block
-            if (decoded_body && self.height > 0) {
-                resolve(decoded_body)
+            try {
+                let decoded_body = JSON.parse(hex2ascii(self.body));
+                // Resolve with the data if the object isn't the Genesis block
+                if (decoded_body && self.height > 0) {
+                    resolve(decoded_body)
+                }
+            } catch (error) {
+                reject(error)
             }
+
         })
 
 
