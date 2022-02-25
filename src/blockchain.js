@@ -68,14 +68,16 @@ class Blockchain {
         let self = this;
         return new Promise(async (resolve, reject) => {
             try {
-                block.height = self.chain.length;
-                block.time = new Date().getTime().toString().slice(0, -3);
-                if (block.height > 0) {
-                    block.previous_hash = self.chain[block.height - 1].hash;
+                let newBlock = block
+                newBlock.time = new Date().getTime().toString().slice(0, -3);
+                newBlock.height = self.chain.length;
+                if (newBlock.height > 0) {
+
+                    newBlock.previousBlockHash = self.chain[self.chain.length - 1].hash;
                 }
-                block.hash = SHA256(JSON.stringify(block)).toString();
+                newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
                 self.chain.push(newBlock);
-                resolve(block)
+                resolve(newBlock)
             }
             catch (error) {
                 reject(error)
@@ -93,7 +95,7 @@ class Blockchain {
      */
     requestMessageOwnershipVerification(address) {
         return new Promise((resolve) => {
-            let time = new Date().getTime().toString.slice(0, -3);
+            let time = new Date().getTime().toString().slice(0, -3);
             resolve(`${address}:${time}:starRegistry`)
         });
     }
@@ -121,21 +123,31 @@ class Blockchain {
             try {
                 let time = parseInt(message.split(':')[1]);
                 let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
-                if (currentTime - time < 300 && bitcoinMessage.verify(message, address, signature)) {
-
-                    block = new BlockClass.Block({
-                        owner: address,
-                        star: star
+                console.log('start block')
+                console.log(bitcoinMessage.verify(message, address, signature))
+                if ((currentTime - time < 300) && (bitcoinMessage.verify(message, address, signature))) {
+                    console.log('create')
+                    let block = new BlockClass.Block({
+                        "owner": address,
+                        "star": star,
+                        "message": message,
+                        "signature": signature
                     })
                     resolve(await self._addBlock(block))
-                } else if (currentTime - time < 300) {
+                } else if (currentTime - time > 300) {
+                    console.log('Time Error')
                     reject(new Error('Block not signed within 5 minutes'))
-                } else {
+                } else if (!bitcoinMessage.verify(message, address, signature)) {
+                    console.log('Verify Error')
                     reject(new Error('Unable to verify Bitcoin message'))
+                } else {
+                    console.log('Unknown Error')
+                    reject(new Error('Unknown Error'))
                 }
 
             }
             catch (error) {
+                console.log(error)
                 reject(error)
             }
         });
@@ -151,7 +163,7 @@ class Blockchain {
         let self = this;
         return new Promise((resolve, reject) => {
             try {
-                block = self.chain.find(element => element.hash === hash)
+                let block = self.chain.find(element => element.hash === hash)
                 if (block) {
                     resolve(block)
                 } else {
@@ -194,17 +206,16 @@ class Blockchain {
         let stars = [];
         return new Promise((resolve, reject) => {
             try {
-                blocks.forEach(block => {
-                    let data = block.getBData();
-                    if (data['owner'] === address) {
+                self.chain.forEach(async (block) => {
+                    let data = await block.getBData();
+                    console.log(data);
+                    console.log(data.owner);
+                    if (data.owner === address) {
                         stars.push(data)
                     }
+                    console.log('stars: ', stars)
                 })
-                if (stars.length > 0) {
-                    resolve(stars)
-                } else {
-                    resolve(null)
-                }
+                resolve(stars)
 
             } catch (error) {
                 reject(error)
