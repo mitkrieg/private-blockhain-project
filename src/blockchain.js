@@ -125,8 +125,8 @@ class Blockchain {
             try {
                 let time = parseInt(message.split(':')[1]);
                 let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
-                console.log('start block')
-                console.log(bitcoinMessage.verify(message, address, signature))
+                console.log('Start block')
+                console.log('Sig Verification:', bitcoinMessage.verify(message, address, signature))
                 if ((currentTime - time < 300) && (bitcoinMessage.verify(message, address, signature))) {
                     console.log('create')
                     let block = new BlockClass.Block({
@@ -210,12 +210,9 @@ class Blockchain {
             try {
                 self.chain.forEach(async (block) => {
                     let data = await block.getBData();
-                    console.log(data);
-                    console.log(data.owner);
                     if (data.owner === address) {
                         stars.push(data)
                     }
-                    console.log('stars: ', stars)
                 })
                 resolve(stars)
 
@@ -237,11 +234,6 @@ class Blockchain {
         return new Promise(async (resolve, reject) => {
             try {
                 for (let i = 0; i < self.chain.length; i++) {
-                    console.log(i)
-                    console.log(self.chain[i].hash)
-                    console.log(self.chain[i].height)
-                    console.log(self.chain[i].previousBlockHash)
-                    console.log('XXXXXXXXXXXXXXXXXXX')
                     if (!self.chain[i].validate()) {
                         errorLog.push({ error: `Block ${i} not valid` })
                     }
